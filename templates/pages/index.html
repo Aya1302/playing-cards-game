@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playing Cards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #1a2530);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        h1 {
+            color: #fff;
+            margin-bottom: 30px;
+            text-align: center;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            max-width: 1000px;
+        }
+        
+        .card {
+            width: 120px;
+            height: 180px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .card.red {
+            background: linear-gradient(135deg, #ffffff, #f5f5f5);
+            color: #e32;
+        }
+        
+        .card.black {
+            background: linear-gradient(135deg, #ffffff, #f5f5f5);
+            color: #222;
+        }
+        
+        .card-back {
+            background: linear-gradient(135deg, #e32, #c21);
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(0,0,0,0.1) 5px, rgba(0,0,0,0.1) 10px),
+                repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(0,0,0,0.1) 5px, rgba(0,0,0,0.1) 10px);
+        }
+        
+        .card-back::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            border-radius: 5px;
+        }
+        
+        .card-value {
+            font-size: 24px;
+            font-weight: bold;
+            position: absolute;
+        }
+        
+        .card-value.top {
+            top: 10px;
+            left: 10px;
+        }
+        
+        .card-value.bottom {
+            bottom: 10px;
+            right: 10px;
+            transform: rotate(180deg);
+        }
+        
+        .card-suit {
+            font-size: 20px;
+            position: absolute;
+        }
+        
+        .card-suit.top {
+            top: 35px;
+            left: 12px;
+        }
+        
+        .card-suit.bottom {
+            bottom: 35px;
+            right: 12px;
+            transform: rotate(180deg);
+        }
+        
+        .card-center {
+            font-size: 50px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        button {
+            padding: 12px 24px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        .instructions {
+            color: #fff;
+            max-width: 600px;
+            text-align: center;
+            margin-top: 20px;
+            line-height: 1.6;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        @media (max-width: 600px) {
+            .card {
+                width: 80px;
+                height: 120px;
+            }
+            
+            .card-value {
+                font-size: 18px;
+            }
+            
+            .card-suit {
+                font-size: 14px;
+            }
+            
+            .card-center {
+                font-size: 30px;
+            }
+            
+            button {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Playing Cards</h1>
+    
+    <div class="card-container" id="cardContainer">
+        <!-- Cards will be generated here -->
+    </div>
+    
+    <div class="controls">
+        <button id="shuffleBtn">Shuffle Cards</button>
+        <button id="flipBtn">Flip Cards</button>
+        <button id="resetBtn">Reset Layout</button>
+    </div>
+    
+    <div class="instructions">
+        <p>Click on any card to flip it. Use the buttons to shuffle, flip all cards, or reset the layout.</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cardContainer = document.getElementById('cardContainer');
+            const shuffleBtn = document.getElementById('shuffleBtn');
+            const flipBtn = document.getElementById('flipBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            
+            const suits = [
+                { symbol: '♥', name: 'hearts', color: 'red' },
+                { symbol: '♦', name: 'diamonds', color: 'red' },
+                { symbol: '♠', name: 'spades', color: 'black' },
+                { symbol: '♣', name: 'clubs', color: 'black' }
+            ];
+            
+            const values = [
+                'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'
+            ];
+            
+            let cards = [];
+            
+            // Create a deck of cards
+            function createDeck() {
+                cards = [];
+                for (const suit of suits) {
+                    for (const value of values) {
+                        cards.push({
+                            value: value,
+                            suit: suit.symbol,
+                            color: suit.color,
+                            name: suit.name
+                        });
+                    }
+                }
+            }
+            
+            // Render cards to the DOM
+            function renderCards() {
+                cardContainer.innerHTML = '';
+                cards.forEach((card, index) => {
+                    const cardElement = document.createElement('div');
+                    cardElement.className = `card ${card.color}`;
+                    cardElement.innerHTML = `
+                        <div class="card-value top">${card.value}</div>
+                        <div class="card-suit top">${card.suit}</div>
+                        <div class="card-center">${card.suit}</div>
+                        <div class="card-value bottom">${card.value}</div>
+                        <div class="card-suit bottom">${card.suit}</div>
+                    `;
+                    cardElement.addEventListener('click', () => flipCard(cardElement));
+                    cardContainer.appendChild(cardElement);
+                });
+            }
+            
+            // Shuffle the cards
+            function shuffleCards() {
+                for (let i = cards.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [cards[i], cards[j]] = [cards[j], cards[i]];
+                }
+                renderCards();
+            }
+            
+            // Flip a single card
+            function flipCard(cardElement) {
+                if (cardElement.classList.contains('card-back')) {
+                    cardElement.classList.remove('card-back');
+                    const color = cardElement.classList.contains('red') ? 'red' : 'black';
+                    cardElement.classList.add(color);
+                    
+                    // Restore the card content
+                    const index = Array.from(cardContainer.children).indexOf(cardElement);
+                    cardElement.innerHTML = `
+                        <div class="card-value top">${cards[index].value}</div>
+                        <div class="card-suit top">${cards[index].suit}</div>
+                        <div class="card-center">${cards[index].suit}</div>
+                        <div class="card-value bottom">${cards[index].value}</div>
+                        <div class="card-suit bottom">${cards[index].suit}</div>
+                    `;
+                } else {
+                    const colorClass = cardElement.classList.contains('red') ? 'red' : 'black';
+                    cardElement.classList.remove(colorClass);
+                    cardElement.classList.add('card-back');
+                    cardElement.innerHTML = '';
+                }
+            }
+            
+            // Flip all cards
+            function flipAllCards() {
+                const allCards = document.querySelectorAll('.card');
+                allCards.forEach(card => {
+                    if (card.classList.contains('card-back')) {
+                        card.classList.remove('card-back');
+                        const color = card.classList.contains('red') ? 'red' : 'black';
+                        card.classList.add(color);
+                        
+                        const index = Array.from(cardContainer.children).indexOf(card);
+                        card.innerHTML = `
+                            <div class="card-value top">${cards[index].value}</div>
+                            <div class="card-suit top">${cards[index].suit}</div>
+                            <div class="card-center">${cards[index].suit}</div>
+                            <div class="card-value bottom">${cards[index].value}</div>
+                            <div class="card-suit bottom">${cards[index].suit}</div>
+                        `;
+                    } else {
+                        const colorClass = card.classList.contains('red') ? 'red' : 'black';
+                        card.classList.remove(colorClass);
+                        card.classList.add('card-back');
+                        card.innerHTML = '';
+                    }
+                });
+            }
+            
+            // Initialize
+            createDeck();
+            renderCards();
+            
+            // Event listeners
+            shuffleBtn.addEventListener('click', shuffleCards);
+            flipBtn.addEventListener('click', flipAllCards);
+            resetBtn.addEventListener('click', () => {
+                createDeck();
+                renderCards();
+            });
+        });
+    </script>
+</body>
+</html>
